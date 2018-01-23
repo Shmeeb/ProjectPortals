@@ -36,7 +36,7 @@ public class PortalElement extends CommandElement {
         	return optionalPortal.get();
         }
         
-		throw args.createError(Text.of(TextColors.RED, "Warp not found"));
+		throw args.createError(Text.of(TextColors.RED, "Portal not found"));
     }
 
     @Override

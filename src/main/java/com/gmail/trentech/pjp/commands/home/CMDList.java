@@ -26,6 +26,7 @@ import com.gmail.trentech.pjc.help.Help;
 import com.gmail.trentech.pjp.data.Keys;
 import com.gmail.trentech.pjp.portal.Portal;
 import com.gmail.trentech.pjp.portal.features.Coordinate;
+import com.gmail.trentech.pjp.portal.features.Coordinate.Preset;
 
 public class CMDList implements CommandExecutor {
 
@@ -65,9 +66,9 @@ public class CMDList implements CommandExecutor {
 				Coordinate coordinate = optionalCoordinate.get();
 				String worldName = coordinate.getWorld().getName();
 				
-				if(coordinate.isBedSpawn()) {	
+				if(coordinate.getPreset().equals(Preset.BED)) {	
 					builder.onClick(TextActions.runCommand("/home " + name)).append(Text.of(TextColors.GREEN, "Name: ", TextColors.WHITE, name, TextColors.GREEN, " Destination: ", TextColors.WHITE, worldName, ", bed"));
-				} else if(coordinate.isRandom()) { 
+				} else if(coordinate.getPreset().equals(Preset.RANDOM)) {
 					builder.onClick(TextActions.runCommand("/home " + name)).append(Text.of(TextColors.GREEN, "Name: ", TextColors.WHITE, name, TextColors.GREEN, " Destination: ", TextColors.WHITE, worldName, ", random"));
 				} else {
 					Optional<Location<World>> optionalLocation = coordinate.getLocation();

@@ -24,4 +24,5 @@ public class DataQueries {
 	public static final DataQuery PERMISSION = of("permission");
 	public static final DataQuery RANDOM = of("random");
 	public static final DataQuery SRCTYPE = of("src");
+	public static final DataQuery PRESET = of("preset");
 }

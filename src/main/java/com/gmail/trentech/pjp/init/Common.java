@@ -42,8 +42,8 @@ public class Common {
 		Usage usagePortal = new Usage(Argument.of("<destination>", "Specifies a world or server if [-b] is supplied"))
 				.addArgument(Argument.of("[-b]", "Specifies that <destination> is a bungee connected server"))
 				.addArgument(Argument.of("[-f]", "Skips safe location check. Has no effect with '-c random' or '-c bed'"))
-				.addArgument(Argument.of("[-c <x,y,z>]", "Specifies the coordinates to set spawn to. x and z must fall within the range -30,000,000 to 30,000,000 (exclusive, without the "
-						+ "commas), and y must be within the range -4096 to 4096 inclusive. This is ignored if [-b] is supplied"))
+				.addArgument(Argument.of("[-c <x,y,z>]", "Specifies the coordinates to set spawn to. Other valid arguments are \"random\",\"bed\" and \"last\". x and z must fall within the range -30,000,000 to 30,000,000 "
+						+ ", and y must be within the range -4096 to 4096 inclusive. This is ignored if [-b] is supplied"))
 				.addArgument(Argument.of("[-d <direction>]", "Specifies the direction player will face upon teleporting. The following can be used: NORTH, NORTH_WEST, WEST, SOUTH_WEST, SOUTH, SOUTH_EAST, EAST, NORTH_EAST"))
 				.addArgument(Argument.of("[-p <price>]", "Specifies a price player will be charged for using portal"))
 				.addArgument(Argument.of("[-s <command>]", "Specifies a command to execute when using portal"))
@@ -56,7 +56,7 @@ public class Common {
 					.addExample("/button MyWorld -c random")
 					.addExample("/button MyWorld -c -100,65,254 -d south")
 					.addExample("/button MyWorld -d southeast")
-					.addExample("/button MyWorld -c -100,65,254")
+					.addExample("/button MyWorld -c bed")
 					.addExample("/button MyWorld");
 			
 			Help.register(button);

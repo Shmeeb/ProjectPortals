@@ -1,18 +1,26 @@
 package com.gmail.trentech.pjp.listeners;
 
+import static com.gmail.trentech.pjp.data.Keys.BED_LOCATIONS;
+import static com.gmail.trentech.pjp.data.Keys.LAST_LOCATIONS;
+
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.event.entity.DestructEntityEvent;
 import org.spongepowered.api.event.entity.MoveEntityEvent;
 import org.spongepowered.api.event.filter.Getter;
+import org.spongepowered.api.event.filter.cause.Root;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
@@ -31,9 +39,12 @@ import com.gmail.trentech.pjc.core.ConfigManager;
 import com.gmail.trentech.pjc.core.TeleportManager;
 import com.gmail.trentech.pjp.Main;
 import com.gmail.trentech.pjp.commands.CMDBack;
+import com.gmail.trentech.pjp.data.mutable.BedData;
+import com.gmail.trentech.pjp.data.mutable.LastLocationData;
 import com.gmail.trentech.pjp.effects.Particle;
 import com.gmail.trentech.pjp.effects.Particles;
 import com.gmail.trentech.pjp.events.TeleportEvent;
+import com.gmail.trentech.pjp.portal.features.Coordinate;
 import com.gmail.trentech.pjp.utils.Timings;
 
 import ninja.leaping.configurate.ConfigurationNode;
@@ -46,6 +57,25 @@ public class TeleportListener {
 		this.timings = timings;
 	}
 
+	@Listener
+	public void onInteractBLockEvent(InteractBlockEvent.Secondary event, @Root Player player) {
+		if(event.getTargetBlock().getState().getType().equals(BlockTypes.BED)) {
+			Map<String, Coordinate> list = new HashMap<>();
+
+			Optional<Map<String, Coordinate>> optionalList = player.get(BED_LOCATIONS);
+
+			if (optionalList.isPresent()) {
+				list = optionalList.get();
+			}
+			
+			list.put(player.getWorld().getUniqueId().toString(), new Coordinate(player.getLocation()));
+			
+			player.offer(new BedData(list));
+
+			player.sendMessage(Text.of(TextColors.DARK_GREEN, "Respawn location Saved."));
+		}
+	}
+	
 	@Listener
 	public void onTeleportEvent(TeleportEvent event) {
 		timings.onTeleportEvent().startTimingIfSync();
@@ -163,6 +193,23 @@ public class TeleportListener {
 		try {
 			if (player.hasPermission("pjp.cmd.back")) {
 				CMDBack.players.put(player, event.getFromTransform().getLocation());
+			}
+			
+			World from = event.getFromTransform().getExtent();
+			World to = event.getToTransform().getExtent();
+
+			if (!from.equals(to)) {
+				Map<String, Coordinate> list = new HashMap<>();
+
+				Optional<Map<String, Coordinate>> optionalList = player.get(LAST_LOCATIONS);
+
+				if (optionalList.isPresent()) {
+					list = optionalList.get();
+				}
+				
+				list.put(from.getUniqueId().toString(), new Coordinate(event.getFromTransform().getLocation()));
+				
+				player.offer(new LastLocationData(list));
 			}
 		} finally {
 			timings.onMoveEntityEvent().stopTimingIfSync();

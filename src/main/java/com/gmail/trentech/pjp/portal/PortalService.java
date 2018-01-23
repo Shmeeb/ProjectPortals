@@ -1,21 +1,23 @@
 package com.gmail.trentech.pjp.portal;
 
+import static com.gmail.trentech.pjp.data.Keys.BED_LOCATIONS;
+import static com.gmail.trentech.pjp.data.Keys.LAST_LOCATIONS;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
@@ -23,13 +25,14 @@ import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.util.RespawnLocation;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import com.flowpowered.math.vector.Vector3d;
 import com.gmail.trentech.pjc.core.BungeeManager;
+import com.gmail.trentech.pjc.core.ConfigManager;
 import com.gmail.trentech.pjc.core.SQLManager;
+import com.gmail.trentech.pjc.core.TeleportManager;
 import com.gmail.trentech.pjp.Main;
 import com.gmail.trentech.pjp.effects.Particle;
 import com.gmail.trentech.pjp.effects.Particles;
@@ -38,6 +41,7 @@ import com.gmail.trentech.pjp.portal.Portal.PortalType;
 import com.gmail.trentech.pjp.portal.features.Command;
 import com.gmail.trentech.pjp.portal.features.Command.SourceType;
 import com.gmail.trentech.pjp.portal.features.Coordinate;
+import com.gmail.trentech.pjp.portal.features.Coordinate.Preset;
 import com.gmail.trentech.pjp.portal.features.Properties;
 
 public class PortalService {
@@ -116,15 +120,26 @@ public class PortalService {
 			while (result.next()) {
 				String name = result.getString("Name");
 
-				Portal portal = Portal.deserialize(result.getString("Data"));
-				portal.setName(name);
+				Portal portal;
+				try {
+					portal = Portal.deserialize(result.getString("Data"));
+					
+					portal.setName(name);
 
-				cache.put(name, portal);
+					cache.put(name, portal);
 
-				if (portal.getProperties().isPresent()) {
-					Properties properties = portal.getProperties().get();
-					properties.getParticle().createTask(name, properties.getFill(), properties.getParticleColor());
-				}
+					Optional<Properties> optionalProperties = portal.getProperties();
+					
+					if (optionalProperties.isPresent()) {
+						Properties properties = portal.getProperties().get();
+						properties.getParticle().createTask(name, properties.getFill(), properties.getParticleColor());
+					}
+				} catch(Exception e) {
+					e.printStackTrace();
+					portal = new Portal.Local(null, null, 0, false);
+					portal.setName(name);
+					remove(portal);
+				}		
 			}
 
 			connection.close();
@@ -218,7 +233,9 @@ public class PortalService {
 
 			connection.close();
 
-			cache.remove(portal.getName());
+			if(cache.contains(portal.getName())) {
+				cache.remove(portal.getName());
+			}
 
 			Optional<Properties> optionalProperties = portal.getProperties();
 			
@@ -284,37 +301,45 @@ public class PortalService {
 			if(optionalCoodinate.isPresent()) {
 				Coordinate coordinate = optionalCoodinate.get();
 				
-				if(coordinate.isBedSpawn()) {
-					Optional<Map<UUID, RespawnLocation>> optionalLocations = player.get(Keys.RESPAWN_LOCATIONS);
-					
-					if(optionalLocations.isPresent()) {
-						Map<UUID, RespawnLocation> respawnLocations = optionalLocations.get();
-						
-						UUID worldUuid = coordinate.getWorld().getUniqueId();
-						
-						if(respawnLocations.containsKey(worldUuid)) {
-							Optional<Location<World>> optionalLocation = respawnLocations.get(worldUuid).asLocation();
-							
-							if(optionalLocation.isPresent()) {
-								Location<World> spawnLocation = optionalLocation.get();
-								
-								com.gmail.trentech.pjp.events.TeleportEvent.Local teleportEvent = new TeleportEvent.Local(player, player.getLocation(), spawnLocation, local.getPrice(), local.force(), local.getPermission(), Cause.of(EventContext.builder().add(EventContextKeys.PLAYER, player).build(), local));
+				Optional<Location<World>> optionalSpawnLocation;
 
-								if (!Sponge.getEventManager().post(teleportEvent)) {
-									spawnLocation = teleportEvent.getDestination();
+				if(coordinate.getPreset().equals(Preset.BED)) {
+					Map<String, Coordinate> list = new HashMap<>();
 
-									Vector3d rotation = local.getRotation().toVector3d();
+					Optional<Map<String, Coordinate>> optionalList = player.get(BED_LOCATIONS);
 
-									player.setLocationAndRotation(spawnLocation, rotation);
-
-									return true;
-								}
-							}
-						}
+					if (optionalList.isPresent()) {
+						list = optionalList.get();
 					}
-				}
+					
+					String worldUuid = coordinate.getWorld().getUniqueId().toString();
+					
+					if(list.containsKey(worldUuid)) {
+						optionalSpawnLocation = list.get(worldUuid).getLocation();
+					}else {
+						optionalSpawnLocation = coordinate.getLocation();
+					}
+				} else if(coordinate.getPreset().equals(Preset.LAST_LOCATION)) {
+					Map<String, Coordinate> list = new HashMap<>();
 
-				Optional<Location<World>> optionalSpawnLocation = coordinate.getLocation();
+					Optional<Map<String, Coordinate>> optionalList = player.get(LAST_LOCATIONS);
+
+					if (optionalList.isPresent()) {
+						list = optionalList.get();
+					}
+					
+					String worldUuid = coordinate.getWorld().getUniqueId().toString();
+					
+					if(list.containsKey(worldUuid)) {
+						optionalSpawnLocation = list.get(worldUuid).getLocation();
+					}else {
+						optionalSpawnLocation = coordinate.getLocation();
+					}
+				} else if(coordinate.getPreset().equals(Preset.RANDOM)) {
+					optionalSpawnLocation = TeleportManager.getRandomLocation(coordinate.getWorld(), ConfigManager.get(Main.getPlugin()).getConfig().getNode("options", "random_spawn_radius").getInt());
+				} else {
+					optionalSpawnLocation = coordinate.getLocation();
+				}
 
 				if (optionalSpawnLocation.isPresent()) {
 					Location<World> spawnLocation = optionalSpawnLocation.get();
@@ -328,7 +353,7 @@ public class PortalService {
 		
 						player.setLocationAndRotation(spawnLocation, rotation);
 		
-						bool.set(true);
+						return true;
 					}
 				} else {
 					player.sendMessage(Text.of(TextColors.RED, "Could not find location"));

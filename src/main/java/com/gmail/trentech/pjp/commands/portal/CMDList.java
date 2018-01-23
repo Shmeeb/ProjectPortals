@@ -27,6 +27,7 @@ import com.gmail.trentech.pjp.portal.Portal;
 import com.gmail.trentech.pjp.portal.PortalService;
 import com.gmail.trentech.pjp.portal.Portal.PortalType;
 import com.gmail.trentech.pjp.portal.features.Coordinate;
+import com.gmail.trentech.pjp.portal.features.Coordinate.Preset;
 
 public class CMDList implements CommandExecutor {
 
@@ -77,10 +78,12 @@ public class CMDList implements CommandExecutor {
 					Coordinate coordinate = optionalCoordinate.get();
 					String worldName = coordinate.getWorld().getName();
 					
-					if(coordinate.isBedSpawn()) {	
+					if(coordinate.getPreset().equals(Preset.BED)) {	
 						builder.append(Text.of(TextColors.GREEN, "Name: ", TextColors.WHITE, name, TextColors.GREEN, " Destination: ", TextColors.WHITE, worldName, ", bed "));
-					} else if(coordinate.isRandom()) { 
+					} else if(coordinate.getPreset().equals(Preset.RANDOM)) {
 						builder.append(Text.of(TextColors.GREEN, "Name: ", TextColors.WHITE, name, TextColors.GREEN, " Destination: ", TextColors.WHITE, worldName, ", random "));
+					} else if(coordinate.getPreset().equals(Preset.LAST_LOCATION)) {
+						builder.append(Text.of(TextColors.GREEN, "Name: ", TextColors.WHITE, name, TextColors.GREEN, " Destination: ", TextColors.WHITE, worldName, ", last location "));
 					} else {
 						Optional<Location<World>> optionalLocation = coordinate.getLocation();
 						

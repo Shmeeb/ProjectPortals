@@ -299,12 +299,12 @@ public abstract class Portal implements DataSerializable {
 			try {
 				return Sponge.getDataManager().deserialize(Local.class, container).get();
 			} catch (Exception e) {
-				return Sponge.getDataManager().deserialize(Server.class, container).get();
-			}
+				e.printStackTrace();
+				return Sponge.getDataManager().deserialize(Server.class, container).get();	
+			}	
 		} catch (InvalidDataException | IOException e) {
 			e.printStackTrace();
 			return null;
-		}
-		
+		}		
 	}
 }

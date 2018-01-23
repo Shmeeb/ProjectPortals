@@ -23,6 +23,7 @@ import com.gmail.trentech.pjc.help.Help;
 import com.gmail.trentech.pjp.portal.features.Command;
 import com.gmail.trentech.pjp.portal.features.Command.SourceType;
 import com.gmail.trentech.pjp.portal.features.Coordinate;
+import com.gmail.trentech.pjp.portal.features.Coordinate.Preset;
 import com.gmail.trentech.pjp.rotation.Rotation;
 
 public abstract class CMDObjBase implements CommandExecutor {
@@ -104,9 +105,11 @@ public abstract class CMDObjBase implements CommandExecutor {
 				String[] coords = args.<String>getOne("x,y,z").get().split(",");
 
 				if (coords[0].equalsIgnoreCase("random")) {
-					coordinate = Optional.of(new Coordinate(world.get(), true, false));
+					coordinate = Optional.of(new Coordinate(world.get(), Preset.RANDOM));
 				} else if(coords[0].equalsIgnoreCase("bed")) {
-					coordinate = Optional.of(new Coordinate(world.get(), false, true));
+					coordinate = Optional.of(new Coordinate(world.get(), Preset.BED));
+				} else if(coords[0].equalsIgnoreCase("last")) {
+					coordinate = Optional.of(new Coordinate(world.get(), Preset.LAST_LOCATION));
 				} else {
 					try {
 						coordinate = Optional.of(new Coordinate(world.get(), new Vector3d(Double.parseDouble(coords[0]), Double.parseDouble(coords[1]), Double.parseDouble(coords[2]))));
@@ -115,7 +118,7 @@ public abstract class CMDObjBase implements CommandExecutor {
 					}
 				}
 			} else {
-				coordinate = Optional.of(new Coordinate(world.get(), false, false));
+				coordinate = Optional.of(new Coordinate(world.get(), Preset.NONE));
 			}
 
 			if (args.hasAny("direction")) {

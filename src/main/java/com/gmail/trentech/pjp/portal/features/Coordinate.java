@@ -1,6 +1,7 @@
 package com.gmail.trentech.pjp.portal.features;
 
 import static com.gmail.trentech.pjp.data.DataQueries.BED_RESPAWN;
+import static com.gmail.trentech.pjp.data.DataQueries.PRESET;
 import static com.gmail.trentech.pjp.data.DataQueries.RANDOM;
 import static com.gmail.trentech.pjp.data.DataQueries.VECTOR3D;
 import static com.gmail.trentech.pjp.data.DataQueries.WORLD;
@@ -20,26 +21,21 @@ import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import com.flowpowered.math.vector.Vector3d;
-import com.gmail.trentech.pjc.core.ConfigManager;
-import com.gmail.trentech.pjc.core.TeleportManager;
-import com.gmail.trentech.pjp.Main;
 
 public class Coordinate implements DataSerializable {
 
 	private World world;
 	private Optional<Vector3d> vector3d = Optional.empty();
-	private boolean random = false;
-	private boolean bedSpawn = false;
-
+	private Preset preset = Preset.NONE;
+	
 	public Coordinate(World world, Vector3d vector3d) {
 		this.world = world;
 		this.vector3d = Optional.of(vector3d);
 	}
 	
-	public Coordinate(World world, boolean random, boolean bedSpawn) {
+	public Coordinate(World world, Preset preset) {
 		this.world = world;		
-		this.random = random;
-		this.bedSpawn = bedSpawn;
+		this.preset = preset;
 	}
 	
 	public Coordinate(Location<World> location) {
@@ -50,26 +46,16 @@ public class Coordinate implements DataSerializable {
 	public World getWorld() {
 		return world;
 	}
-
-	public boolean isRandom() {
-		return random;
-	}
-
-	public boolean isBedSpawn() {
-		return bedSpawn;
+	
+	public Preset getPreset() {
+		return preset;
 	}
 
 	public Optional<Location<World>> getLocation() {
-		if (random) {
-			return TeleportManager.getRandomLocation(world, ConfigManager.get(Main.getPlugin()).getConfig().getNode("options", "random_spawn_radius").getInt());
-		} else if(bedSpawn) {
-			return Optional.of(world.getSpawnLocation());
+		if (vector3d.isPresent()) {
+			return Optional.of(new Location<World>(world, this.vector3d.get()));
 		} else {
-			if (vector3d.isPresent()) {
-				return Optional.of(new Location<World>(world, this.vector3d.get()));
-			} else {
-				return Optional.of(world.getSpawnLocation());
-			}
+			return Optional.of(world.getSpawnLocation());
 		}
 	}
 	
@@ -80,7 +66,7 @@ public class Coordinate implements DataSerializable {
 
 	@Override
 	public DataContainer toContainer() {
-		DataContainer dataContainer = DataContainer.createNew().set(WORLD, world.getName()).set(RANDOM, random).set(BED_RESPAWN, bedSpawn);
+		DataContainer dataContainer = DataContainer.createNew().set(WORLD, world.getName()).set(PRESET, preset.getName());
 		
 		if(vector3d.isPresent()) {
 			dataContainer.set(VECTOR3D, DataTranslators.VECTOR_3_D.translate(vector3d.get()));
@@ -88,7 +74,7 @@ public class Coordinate implements DataSerializable {
 		
 		return dataContainer;
 	}
-
+	
 	public static class Builder extends AbstractDataBuilder<Coordinate> {
 
 		public Builder() {
@@ -111,17 +97,55 @@ public class Coordinate implements DataSerializable {
 					return Optional.of(new Coordinate(world, vector3d));
 				}
 				
-				boolean random = container.getBoolean(RANDOM).get();
-				boolean bedSpawn = container.getBoolean(BED_RESPAWN).get();
+				Preset preset;
 				
-				return Optional.of(new Coordinate(world, random, bedSpawn));
-				
+				if(container.contains(RANDOM)) {
+					if(container.getBoolean(RANDOM).get()) {
+						preset = Preset.RANDOM;
+					} else if(container.getBoolean(BED_RESPAWN).get()){
+						preset = Preset.BED;
+					} else {
+						preset = Preset.NONE;
+					}
+				} else {
+					preset = Preset.get(container.getString(PRESET).get());
+				}
+
+				return Optional.of(new Coordinate(world, preset));
 			}
 
 			return Optional.empty();
 		}
 	}
+	
+	public enum Preset {
 
+		RANDOM("random"), BED("bed"), LAST_LOCATION("last_location"), NONE("none");
+
+		private final String name;
+
+		private Preset(String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public static Preset get(String name) {
+			Preset[] presets = Preset.values();
+
+			for (Preset preset : presets) {
+				if (preset.getName().equals(name.toLowerCase())) {
+					return preset;
+
+				}
+			}
+
+			return null;
+		}
+	}
+	
 	public static String serialize(Location<World> location) {
 		try {
 			return DataFormats.JSON.write(new Coordinate(location).toContainer());
