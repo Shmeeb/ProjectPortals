@@ -37,7 +37,12 @@ public class CMDHome implements CommandExecutor {
 
 		if (args.hasAny("name")) {
 			String name = args.<String>getOne("name").get().toLowerCase();
-
+			
+			if(name.equalsIgnoreCase("create")) {
+				new com.gmail.trentech.pjp.commands.home.CMDCreate().execute(src, args);
+				return CommandResult.empty();
+			}
+			
 			Map<String, Portal> list = new HashMap<>();
 
 			Optional<Map<String, Portal>> optionalList = player.get(Keys.PORTALS);
