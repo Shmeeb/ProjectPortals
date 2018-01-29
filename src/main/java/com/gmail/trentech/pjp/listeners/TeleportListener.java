@@ -21,7 +21,6 @@ import org.spongepowered.api.event.entity.DestructEntityEvent;
 import org.spongepowered.api.event.entity.MoveEntityEvent;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.filter.cause.Root;
-import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
@@ -57,6 +56,17 @@ public class TeleportListener {
 		this.timings = timings;
 	}
 
+//	@Listener
+//	public void onConstructPortalEvent(ConstructPortalEvent event) {
+//		for(Location<World> location : event.getLocations()) {
+//			location.setBlock(BlockState.builder().blockType(BlockTypes.AIR).build());
+//		}
+//		
+//		for(Player player : event.getCause().allOf(Player.class)) {
+//			player.sendMessage(Text.of(TextColors.RED, "Portal construction disabled!"));
+//		}
+//	}
+	
 	@Listener
 	public void onInteractBLockEvent(InteractBlockEvent.Secondary event, @Root Player player) {
 		if(event.getTargetBlock().getState().getType().equals(BlockTypes.BED)) {
@@ -164,25 +174,6 @@ public class TeleportListener {
 			}
 		} finally {
 			timings.onTeleportEventLocal().stopTimingIfSync();
-		}
-	}
-
-	@Listener
-	public void onTeleportEventServer(TeleportEvent.Server event) {
-		timings.onTeleportEventServer().startTimingIfSync();
-
-		try {
-			Player player = event.getPlayer();
-
-			Optional<PluginContainer> optionalPlugin = Sponge.getPluginManager().getPlugin("spongycord");
-
-			if (!optionalPlugin.isPresent()) {
-				player.sendMessage(Text.of(TextColors.DARK_RED, "Bungee portals require Spongee plugin dependency"));
-				event.setCancelled(true);
-				return;
-			}
-		} finally {
-			timings.onTeleportEventServer().stopTimingIfSync();
 		}
 	}
 
