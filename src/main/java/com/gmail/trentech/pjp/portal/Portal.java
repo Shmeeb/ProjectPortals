@@ -286,25 +286,35 @@ public abstract class Portal implements DataSerializable {
 				Local local = (Local) portal;
 				return DataFormats.JSON.write(local.toContainer());
 			}
-		} catch (IOException e1) {
-			e1.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 			return null;
 		}
 	}
 
 	public static Portal deserialize(String portal) {
+		DataContainer container;
 		try {
-			DataContainer container = DataFormats.JSON.read(portal);
-			
+			container = DataFormats.JSON.read(portal);
+		} catch (InvalidDataException | IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+		if(container.contains(SERVER)) {
+			try {
+				return Sponge.getDataManager().deserialize(Server.class, container).get();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+		} else {
 			try {
 				return Sponge.getDataManager().deserialize(Local.class, container).get();
 			} catch (Exception e) {
 				e.printStackTrace();
-				return Sponge.getDataManager().deserialize(Server.class, container).get();	
-			}	
-		} catch (InvalidDataException | IOException e) {
-			e.printStackTrace();
-			return null;
-		}		
+				return null;
+			}
+		}
 	}
 }
