@@ -70,7 +70,20 @@ public class CMDCreate implements CommandExecutor {
 		}
 
 		if (args.hasAny("command")) {
-			command.set(Optional.of(new Command(SourceType.CONSOLE, args.<String>getOne("command").get())));
+			String rawCommand = args.<String>getOne("command").get();
+			String source = rawCommand.substring(0, 2);
+			
+			if(rawCommand.length() < 2) {
+				throw new CommandException(Text.of(TextColors.RED, "Did not specify command source. P: for player or C: for console. Example \"P:say hello world\""), false);
+			}
+			
+			if(source.equalsIgnoreCase("P:")) {
+				command.set(Optional.of(new Command(SourceType.PLAYER, rawCommand.substring(2))));
+			} else if(source.equalsIgnoreCase("C:")) {
+				command.set(Optional.of(new Command(SourceType.CONSOLE, rawCommand.substring(2))));
+			} else {
+				throw new CommandException(Text.of(TextColors.RED, "Did not specify command source. P: for player or C: for console. Example \"P:say hello world\""), false);
+			}
 		}
 		
 		if (args.hasAny("destination")) {
