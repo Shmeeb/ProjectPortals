@@ -72,6 +72,11 @@ public class Main {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		DataRegistration.builder().dataClass(BedData.class).immutableClass(ImmutableBedData.class).builder(new BedData.Builder()).dataName("bed")
+			.manipulatorId("pjp_bed").buildAndRegister(Main.getPlugin());
+		DataRegistration.builder().dataClass(LastLocationData.class).immutableClass(ImmutableLastLocationData.class).builder(new LastLocationData.Builder()).dataName("last_location")
+			.manipulatorId("pjp_last_location").buildAndRegister(Main.getPlugin());
 	}
 
 	@Listener
@@ -82,11 +87,6 @@ public class Main {
 
 		Timings timings = new Timings();
 
-		DataRegistration.builder().dataClass(BedData.class).immutableClass(ImmutableBedData.class).builder(new BedData.Builder()).dataName("bed")
-			.manipulatorId("pjp_bed").buildAndRegister(Main.getPlugin());
-		DataRegistration.builder().dataClass(LastLocationData.class).immutableClass(ImmutableLastLocationData.class).builder(new LastLocationData.Builder()).dataName("last_location")
-			.manipulatorId("pjp_last_location").buildAndRegister(Main.getPlugin());
-	
 		Sponge.getDataManager().registerBuilder(Coordinate.class, new Coordinate.Builder());
 		Sponge.getDataManager().registerBuilder(Command.class, new Command.Builder());
 		Sponge.getDataManager().registerBuilder(Properties.class, new Properties.Builder());
