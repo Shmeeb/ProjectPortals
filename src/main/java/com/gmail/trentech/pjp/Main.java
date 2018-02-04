@@ -20,6 +20,7 @@ import org.spongepowered.api.plugin.PluginContainer;
 
 import com.gmail.trentech.pjc.core.ConfigManager;
 import com.gmail.trentech.pjp.commands.CMDBack;
+import com.gmail.trentech.pjp.data.Keys;
 import com.gmail.trentech.pjp.data.immutable.ImmutableBedData;
 import com.gmail.trentech.pjp.data.immutable.ImmutableHomeData;
 import com.gmail.trentech.pjp.data.immutable.ImmutableLastLocationData;
@@ -73,10 +74,8 @@ public class Main {
 			e.printStackTrace();
 		}
 		
-		DataRegistration.builder().dataClass(BedData.class).immutableClass(ImmutableBedData.class).builder(new BedData.Builder()).dataName("bed")
-			.manipulatorId("pjp_bed").buildAndRegister(Main.getPlugin());
-		DataRegistration.builder().dataClass(LastLocationData.class).immutableClass(ImmutableLastLocationData.class).builder(new LastLocationData.Builder()).dataName("last_location")
-			.manipulatorId("pjp_last_location").buildAndRegister(Main.getPlugin());
+		@SuppressWarnings("unused")
+		Object key = Keys.BED_LOCATIONS;
 	}
 
 	@Listener
@@ -87,6 +86,11 @@ public class Main {
 
 		Timings timings = new Timings();
 
+		DataRegistration.builder().dataClass(BedData.class).immutableClass(ImmutableBedData.class).builder(new BedData.Builder()).dataName("bed")
+			.manipulatorId("pjp_bed").buildAndRegister(Main.getPlugin());
+		DataRegistration.builder().dataClass(LastLocationData.class).immutableClass(ImmutableLastLocationData.class).builder(new LastLocationData.Builder()).dataName("last_location")
+			.manipulatorId("pjp_last_location").buildAndRegister(Main.getPlugin());
+	
 		Sponge.getDataManager().registerBuilder(Coordinate.class, new Coordinate.Builder());
 		Sponge.getDataManager().registerBuilder(Command.class, new Command.Builder());
 		Sponge.getDataManager().registerBuilder(Properties.class, new Properties.Builder());
