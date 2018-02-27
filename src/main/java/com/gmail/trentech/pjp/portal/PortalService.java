@@ -347,14 +347,21 @@ public class PortalService {
 					Location<World> spawnLocation = optionalSpawnLocation.get();
 		
 					com.gmail.trentech.pjp.events.TeleportEvent.Local teleportEvent = new TeleportEvent.Local(player, player.getLocation(), spawnLocation, local.getPrice(), local.force(), local.getPermission(), Cause.of(EventContext.builder().add(EventContextKeys.PLAYER, player).build(), local));
-		
+
 					if (!Sponge.getEventManager().post(teleportEvent)) {
-						spawnLocation = teleportEvent.getDestination();
-		
-						Vector3d rotation = local.getRotation().toVector3d();
-		
-						player.setLocationAndRotation(spawnLocation, rotation);
-		
+//						spawnLocation = teleportEvent.getDestination();
+//						Vector3d rotation = local.getRotation().toVector3d();
+
+						String warp = "warp " + portal.getName();
+
+						if (warp.contains("hubto")) {
+							warp = warp.replace("hubto", "");
+						}
+
+						Sponge.getCommandManager().process(player, warp);
+
+//						player.setLocationAndRotation(spawnLocation, rotation);
+
 						return true;
 					}
 				} else {
